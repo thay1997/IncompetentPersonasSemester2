@@ -1,6 +1,7 @@
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.google.gson.Gson;
@@ -11,6 +12,8 @@ import com.google.gson.JsonParser;
 import org.json.*;
 import org.json.simple.parser.JSONParser;
 
+// Read me
+// Need to add org.json, org.json.simple & gson libraries via Jar files to run code
 
 public class FileHandler {
     
@@ -28,8 +31,15 @@ public class FileHandler {
         // Read the file
         JSONArray array = fileHandler.readFile();
 
-        parseTeachers(array);
-    
+        // Parse the teachers
+        ArrayList<String> parsedTeachers = fileHandler.parseTeachers(array);
+
+        // Testing expected output -> "Alice English,Maths"
+        //                         -> "Bob English, Science"
+        //                         -> "Charlie Maths,Science"
+        for (String string : parsedTeachers) {
+            System.out.println(string);
+        }
     }
     
     // Constructor
@@ -54,33 +64,43 @@ public class FileHandler {
     }
    
     // Parse teachers
-    public static void parseTeachers(JSONArray array) {
+    public static ArrayList<String> parseTeachers(JSONArray array) {
 
-        // To do //
-        // Convert each object to a one line string -> use concat (at least for training attended)
-        // Append string to array list
-        // Output array list
-        
+        ArrayList<String> parsedTeachers = new ArrayList<String>();
+       
+        // 0th element of JSONArray input is the list of teacher objects
         JSONArray teacherArray = array.getJSONArray(0);
          
+            // Iterate over teacher list
             for (int i = 0; i < teacherArray.length(); i++) {
 
+                // Access individual teacher object
                 JSONObject outerTeacherObject = teacherArray.getJSONObject(i);
                 JSONObject inner = outerTeacherObject.getJSONObject("Teacher");
 
+                // Parse teacher name
                 String name = inner.getString("Name");
-                System.out.println(name);
-                
-                JSONArray trainingArray = inner.getJSONArray("TrainingAttended");
 
-                for (int j = 0; j < trainingArray.length(); j++) {
-                    
-                    String qualification = trainingArray.getString(j);
-                    System.out.println(qualification);
+                // Parsing teacher training
+                JSONArray trainingArray = inner.getJSONArray("TrainingAttended");
+                String trainingAttended = "";
+
+                // Iterator over training array
+                Iterator<Object> it = trainingArray.iterator();
+                if (it.hasNext()) {
+                    trainingAttended += it.next();
+                }
+                while (it.hasNext()) {
+                    trainingAttended += ("," + it.next());
                 }
 
+                String outStream = String.format("%s %s", name, trainingAttended);
+                parsedTeachers.add(outStream);  
             }  
+        return parsedTeachers;
     }
+
+    // Parse courses
 
     // Write updated courses (assigned teachers)
 
@@ -193,10 +213,6 @@ public class FileHandler {
         teacherAndCourseList.put(teacherList);
         teacherAndCourseList.put(courseList);
 
-        // Wrap in object
-        //JSONObject teacherAndCourseObj = new JSONObject();
-        //teacherAndCourseObj.put("TeachersAndCourses", teacherAndCourseList);
-
         // Making the file look nice
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonParser jp = new JsonParser();
@@ -214,3 +230,4 @@ public class FileHandler {
         }
     }
 }
+
